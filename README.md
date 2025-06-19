@@ -2,8 +2,6 @@
 
 Odin language bindings for [bgfx](https://github.com/bkaradzic/bgfx), a cross-platform rendering library.
 
-## Status
-
 **Note:** These bindings are currently in development and may be incomplete. Contributions are welcome!
 
 Current limitations:

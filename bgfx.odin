@@ -29,17 +29,17 @@ Fatal :: enum {
     Count,
 }
 
-Renderer_Type :: enum {
-    Noop,
-    AGC,
-    Direct3D11,
-    Direct3D12,
-    GNM,
-    Metal,
-    NVN,
-    OpenGLES, // OpenGL ES 2.0+
-    OpenGL,   // OpenGL 2.1+
-    Vulkan,
+Renderer_Type :: enum u32 {
+    Noop = 0,
+    AGC = 1,
+    Direct3D11 = 2,
+    Direct3D12 = 3,
+    GNM = 4,
+    Metal = 5,
+    NVN = 6,
+    OpenGLES = 7, // OpenGL ES 2.0+
+    OpenGL = 8,   // OpenGL 2.1+
+    Vulkan = 9,
     Count,
 }
 
@@ -412,8 +412,8 @@ Init :: struct {
     limits: Init_Limits,
 
     // TODO: implement callbacks
-    callback: ^Callback_Interface,
-    allocator: ^Allocator_Interface,
+    callback: rawptr,//^Callback_Interface,
+    allocator: rawptr,//^Allocator_Interface,
 }
 
 release_fn :: distinct proc "c" (ptr: rawptr, user_data: rawptr)
@@ -797,15 +797,68 @@ foreign lib {
     copy :: proc(data: rawptr, size: u32) -> ^Memory ---
 
     make_ref :: proc(data: rawptr, size: u32) -> ^Memory ---
+    
+    /**
+    * Make reference to data to pass to bgfx. Unlike `bgfx.alloc`, this call
+    * doesn't allocate memory for data. It just copies the `data` pointer. You
+    * can pass `release_fn` function pointer to release this memory after it's
+    * consumed, otherwise you must make sure _data is available for at least 2
+    * `bgfx.frame` calls. `release_fn` function must be able to be called
+    * from any thread.
+    * @attention Data passed must be available for at least 2 `bgfx.frame` calls.
+    *
+    * @param[in] data: Pointer to data.
+    * @param[in] size: Size of data.
+    * @param[in] release_fn: Callback function to release memory after use.
+    * @param[in] user_data: User data to be passed to callback function.
+    *
+    * @returns Referenced memory.
+    *
+    */
     make_ref_release :: proc(data: rawptr, size: u32, release_fn: release_fn, user_data: rawptr) -> ^Memory ---
-
+    
+    /**
+    * Set debug flags.
+    *
+    * @param[in] _debug Available flags:
+    *    - `bgfx.DEBUG_IFH` - Infinitely fast hardware. When this flag is set
+    *      all rendering calls will be skipped. This is useful when profiling
+    *      to quickly assess potential bottlenecks between CPU and GPU.
+    *    - `bgfx.DEBUG_PROFILER` - Enable profiler.
+    *    - `bgfx.DEBUG_STATS` - Display internal statistics.
+    *    - `bgfx.DEBUG_TEXT` - Display debug text.
+    *    - `bgfx.DEBUG_WIREFRAME` - Wireframe rendering. All rendering
+    *      primitives will be rendered as lines.
+    *
+    */
     set_debug :: proc(debug: u32) ---
+    
+    /*
+    * Clear internal debug text buffer.
+    *
+    * @param[in] attr: Background color.
+    * @param[in] small: Default 8x16 or 8x8 font.
+    *
+    */
     dbg_text_clear :: proc(attr: u8, small: bool) ---
-    // TODO: variadic support
-    // BGFX_C_API void bgfx_dbg_text_printf(uint16_t _x, uint16_t _y, uint8_t _attr, const char* _format, ... );
-    dbg_text_printf :: proc(x, y: u16, attr: u8, format: cstring, ) ---
+    
+    /*
+    * Print formatted data to internal debug text character-buffer (VGA-compatible text mode).
+    *
+    * @param[in] x: Position x from the left corner of the window.
+    * @param[in] y: Position y from the top corner of the window.
+    * @param[in] attr: Color palette. Where top 4-bits represent index of background, and bottom
+    *  4-bits represent foreground color from standard VGA text palette (ANSI escape codes).
+    * @param[in] format: Pre-formatted string to display.
+    *
+    * NOTE: Unlike the C API which supports printf-style formatting, this binding requires
+    * pre-formatted strings. Use Odin's fmt.tprintf() or fmt.aprintf() to format strings
+    * before passing them to this function.
+    *
+    */
+    dbg_text_printf :: proc(x, y: u16, attr: u8, format: cstring) ---
     dbg_text_vprintf :: proc(x, y: u16, attr: u8, format: cstring, arg_list: Arg_List) ---
-    dbg_text_image:: proc(x, y, width, height: u16, data: rawptr, pitch: u16) ---
+    dbg_text_image :: proc(x, y, width, height: u16, data: rawptr, pitch: u16) ---
 
     create_index_buffer :: proc(mem: ^Memory, flags: u16) -> Index_Buffer_Handle ---
     set_index_buffer_name :: proc(handle: Index_Buffer_Handle, name: cstring, len: i32) ---

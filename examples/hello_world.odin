@@ -1,27 +1,21 @@
 package hello_world
 
+// Tested only on Linux with Wayland, if you have any issues, let me know
+
 import "base:runtime"
 
 import "core:fmt"
 
 import "vendor:glfw"
 
-import bgfx "shared:odin-bgfx"
-
-fatal_cb :: proc "c" (this: ^bgfx.Callback_Interface, filepath: cstring, line: u16, code: bgfx.Fatal, str: cstring) {
-    context = runtime.default_context()
-    fmt.printf("[FATAL] filepath: %s, line: %d, code: %d, str: %s\n", filepath, line, code, str)
-}
-
-trace_vargs_cb :: proc "c" (this: ^bgfx.Callback_Interface, filepath: cstring, line: u16, format: cstring, arg_list: bgfx.Arg_List) {
-    context = runtime.default_context()
-    fmt.printf("[TRACE] filepath: %s, line: %d, format: %s, arg_list: %v\n", filepath, line, format, arg_list)
-}
+import bgfx "../"
 
 glfw_key_cb :: proc "c" (
     window: glfw.WindowHandle,
     key, scancode, action, mods: i32
 ) {
+    context = runtime.default_context()
+    
     if key == glfw.KEY_ESCAPE && action == glfw.PRESS {
         glfw.SetWindowShouldClose(window, glfw.TRUE)
     }
@@ -29,7 +23,27 @@ glfw_key_cb :: proc "c" (
 
 glfw_err_cb :: proc "c" (code: i32, desc: cstring) {
     context = runtime.default_context()
-    fmt.println(desc, code)
+    fmt.printfln("[GLFW ERROR] %d, %s", code, desc)
+}
+
+get_platform_handles :: proc(window: glfw.WindowHandle) -> (rawptr, rawptr) {
+    when ODIN_OS == .Windows {
+        hwnd := rawptr(glfw.GetWin32Window(window))
+        return hwnd, nil
+    } else when ODIN_OS == .Linux {
+        // Try X11 first
+        x11d := rawptr(glfw.GetX11Display())
+        x11w := rawptr(uintptr(glfw.GetX11Window(window)))
+        if x11d != nil && x11w != nil {
+            return x11w, x11d
+        } else {
+            wayd := glfw.GetWaylandDisplay()
+            wayw := glfw.GetWaylandWindow(window)
+            return wayw, wayd, 
+        }
+    } else when ODIN_OS == .Darwin {
+        // TODO: implement
+    }
 }
 
 main :: proc() {
@@ -39,10 +53,15 @@ main :: proc() {
     defer glfw.Terminate()
 
     glfw.WindowHint(glfw.CLIENT_API, glfw.NO_API)
+    
+    // TODO(elaeja): add check for supported renderers
+    
+    // NOTE(elaeja): this would be needed for OpenGL
     //glfw.WindowHint(glfw.CLIENT_API, glfw.OPENGL_API)
     //glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 3)
     //glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 3)
     //glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
+
     window := glfw.CreateWindow(800, 600, "Hello from bgfx!", nil, nil)
     if window == nil { panic("glfw failed to create window") }
     defer glfw.DestroyWindow(window)
@@ -54,28 +73,17 @@ main :: proc() {
     bgfx.init_ctor(&init)
     fmt.println("called init ctor")
 
+    // Explicitly setting the renderer type
     init.type = .Vulkan
 
     fmt.println("getting wayland display and window")
-    wd := glfw.GetWaylandDisplay()
-    ww := glfw.GetWaylandWindow(window)
-    fmt.printfln("Wayland display: %p\n", wd)
-    fmt.printfln("Wayland window: %p\n", ww)
-    if wd == nil || ww == nil {
-        fmt.println("Wayland handles are null - might be running under XWayland")
-    }
+    w_handle, d_handle := get_platform_handles(window)
     fmt.println("got wayland display and window")
 
-    /*
-    x11d := glfw.GetX11Display()
-    x11w := uintptr(glfw.GetX11Window(window))
-    fmt.printf("X11 display: %p\n", x11d)
-    fmt.printf("X11 window: %d\n", x11w)
-    */
     fmt.println("setting up platform data")
     init.platform_data = {
-        nwh = rawptr(ww),
-        ndt = rawptr(wd),
+        nwh = w_handle,
+        ndt = d_handle,
         type = .Wayland,
     }
     fmt.println(init.platform_data)
@@ -91,7 +99,6 @@ main :: proc() {
     }
     fmt.println(init.resolution)
     fmt.println("set up resolution data")
-
     
     fmt.println("initializing bgfx")
     if !bgfx.init(&init) { panic("bgfx failed to init!") }
@@ -104,7 +111,7 @@ main :: proc() {
     
     fmt.println("setting up view")
     main_view_id: bgfx.View_Id = 0
-    bgfx.set_view_clear(main_view_id, bgfx.CLEAR_COLOR | bgfx.CLEAR_DEPTH, 0x303030FF, 1.0, 0)
+    bgfx.set_view_clear(main_view_id, bgfx.CLEAR_COLOR | bgfx.CLEAR_DEPTH, 0x501010FF, 1.0, 0)
     fmt.println("set up view")
 
     fmt.println("starting main loop")
@@ -113,14 +120,19 @@ main :: proc() {
 
         bgfx.set_view_rect(main_view_id, 0, 0, u16(w), u16(h))
         
+        // This dummy draw call is here to make sure that view 0 is cleared
+		// if no other draw calls are submitted to view 0.
         encoder := bgfx.encoder_begin(false);
+        // sanity check
         assert(encoder != nil, "bgfx encoder is nil!")
         bgfx.encoder_touch(encoder, main_view_id);
 		bgfx.encoder_end(encoder);
 
 		bgfx.dbg_text_clear(0, false);
-		bgfx.dbg_text_printf(40, 13, 0x0f, "Hello from BGFX!");
-
+		bgfx.dbg_text_printf(42, 18, 0x0f, "Hello from BGFX!");
+        
+        // Advance to next frame. Rendering thread will be kicked to
+		// process submitted rendering primitives.
         bgfx.frame(false)
     }
 }

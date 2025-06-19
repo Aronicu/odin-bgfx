@@ -8,6 +8,7 @@ Current limitations:
 - Some functions may be incomplete
 - Libraries for Windows and Mac platforms are not provided yet
 - Constants still need to be converted to bitsets
+- and probably more...
 
 ## Examples
 

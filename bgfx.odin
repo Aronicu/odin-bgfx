@@ -2,19 +2,26 @@ package bgfx
 
 // TODO: [04-16-2025] WASM?
 when ODIN_OS == .Windows {
-	@(export) foreign import lib "windows/..." // TODO: Add Windows static and dyn lib path
+	foreign import lib {
+        // TODO: Add Windows static and dyn lib path
+        "windows/...",
+    }
 } else when ODIN_OS == .Linux  {
 	foreign import lib {
-        // TODO: Linux debug 
+        // TODO: Linux debug and so 
         "system:stdc++",
         "libs/linux/libbgfxRelease.a",
         "libs/linux/libbxRelease.a",
         "libs/linux/libbimgRelease.a",
     }
 } else when ODIN_OS == .Darwin {
-	@(export) foreign import lib "macos/..." // TODO: Add MacOS static and dyn lib path
+	foreign import lib {
+        // TODO: Add MacOS static and dyn lib path
+        "macos/...",
+    }
 } else {
-	@(export) foreign import lib "system:bgfx"
+    //TODO(elaeja): anything else?
+    foreign import lib "system:bgfx"
 }
 
 Encoder :: distinct rawptr

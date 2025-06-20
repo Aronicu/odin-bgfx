@@ -12,5 +12,5 @@ Current limitations:
 
 ## Examples
 
-The examples are organized from simplest to most complex to help you get started. All examples currently use GLFW as the windowing system.
+The examples *will be* organized from simplest to most complex to help you get started. All examples currently use GLFW as the windowing system.
 

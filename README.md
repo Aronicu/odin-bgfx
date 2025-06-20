@@ -6,7 +6,7 @@ Odin language bindings for [bgfx](https://github.com/bkaradzic/bgfx), a cross-pl
 
 Current limitations:
 - Some functions may be incomplete
-- Libraries for Windows and Mac platforms are not provided yet
+- Dynamic and debug libraries and all Mac libraries are not provided yet
 - Constants still need to be converted to bitsets
 - and probably more...
 

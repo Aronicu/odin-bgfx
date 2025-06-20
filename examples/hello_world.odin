@@ -1,6 +1,6 @@
 package hello_world
 
-// Tested only on Linux with Wayland, if you have any issues, let me know
+// Tested only on Linux with Wayland and Windows, if you have any issues, let me know
 
 import "base:runtime"
 
@@ -9,6 +9,8 @@ import "core:fmt"
 import "vendor:glfw"
 
 import bgfx "../"
+
+frame_size: [2]i32 = {0, 0}
 
 glfw_key_cb :: proc "c" (
     window: glfw.WindowHandle,
@@ -26,22 +28,30 @@ glfw_err_cb :: proc "c" (code: i32, desc: cstring) {
     fmt.printfln("[GLFW ERROR] %d, %s", code, desc)
 }
 
+glfw_fb_size_cb :: proc "c" (window: glfw.WindowHandle, width, height: i32) {
+    frame_size = {
+        width, 
+        height
+    }
+}
+
 get_platform_handles :: proc(window: glfw.WindowHandle) -> (rawptr, rawptr) {
     when ODIN_OS == .Windows {
         //NOTE(elaeja): We do not need to provide the display for windows 
         hwnd := rawptr(glfw.GetWin32Window(window))
         return hwnd, nil
     } else when ODIN_OS == .Linux {
-        // Try X11 first
+        // try X11 first
         x11d := rawptr(glfw.GetX11Display())
         x11w := rawptr(uintptr(glfw.GetX11Window(window)))
         if x11d != nil && x11w != nil {
             return x11w, x11d
         } else {
+            fmt.println("Could not get X11, trying Wayland")
             wayd := glfw.GetWaylandDisplay()
             wayw := glfw.GetWaylandWindow(window)
             if wayd == nil || wayw == nil {
-                panic("could not get x11 or wayland display or window handle")
+                fmt.panicf("could not get x11 or wayland display or window handle, display: %p, window: %p", wayd, wayw)
             }
             return wayw, wayd, 
         }
@@ -71,7 +81,8 @@ main :: proc() {
     defer glfw.DestroyWindow(window)
 
     glfw.SetKeyCallback(window, glfw_key_cb)
-
+    //SetWindowSizeCallback         :: proc(window: WindowHandle, cbfun: WindowSizeProc)         -> WindowSizeProc -
+	glfw.SetFramebufferSizeCallback(window, glfw_fb_size_cb)
     fmt.println("calling init ctor")
     init: bgfx.Init
     bgfx.init_ctor(&init)
@@ -108,8 +119,8 @@ main :: proc() {
     fmt.println("initializing bgfx")
     if !bgfx.init(&init) { panic("bgfx failed to init!") }
     defer bgfx.shutdown()
-    fw, fh := glfw.GetFramebufferSize(window)
-    bgfx.reset(u32(fw), u32(fh), bgfx.RESET_VSYNC, .RGBA8)
+    frame_size.x, frame_size.y = glfw.GetFramebufferSize(window)
+    bgfx.reset(u32(frame_size.x), u32(frame_size.y), bgfx.RESET_VSYNC, .RGBA8)
     fmt.println("initialized bgfx")
 
 	bgfx.set_debug(bgfx.DEBUG_TEXT);
@@ -123,7 +134,7 @@ main :: proc() {
     for !glfw.WindowShouldClose(window) {
         glfw.PollEvents()
 
-        bgfx.set_view_rect(main_view_id, 0, 0, u16(w), u16(h))
+        bgfx.set_view_rect(main_view_id, 0, 0, u16(frame_size.x), u16(frame_size.y))
         
         // This dummy draw call is here to make sure that view 0 is cleared
 		// if no other draw calls are submitted to view 0.

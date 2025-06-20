@@ -3,12 +3,15 @@ package bgfx
 // TODO: [04-16-2025] WASM?
 when ODIN_OS == .Windows {
 	foreign import lib {
-        // TODO: Add Windows static and dyn lib path
-        "windows/...",
+        // TODO: Add Windows dyn and debug libs 
+        "system:stdc++",
+        "libs/windows/bgfxRelease.lib",
+        "libs/windows/bimgRelease.lib",
+        "libs/windows/bxRelease.lib",
     }
 } else when ODIN_OS == .Linux  {
 	foreign import lib {
-        // TODO: Linux debug and so 
+        // TODO: Linux debug and so libs
         "system:stdc++",
         "libs/linux/libbgfxRelease.a",
         "libs/linux/libbxRelease.a",
@@ -16,7 +19,7 @@ when ODIN_OS == .Windows {
     }
 } else when ODIN_OS == .Darwin {
 	foreign import lib {
-        // TODO: Add MacOS static and dyn lib path
+        // TODO: Add MacOS static, dyn, and debug libs 
         "macos/...",
     }
 } else {
@@ -36,17 +39,18 @@ Fatal :: enum {
     Count,
 }
 
+// NOTE(elaeja): this *has* to be u32
 Renderer_Type :: enum u32 {
-    Noop = 0,
-    AGC = 1,
-    Direct3D11 = 2,
-    Direct3D12 = 3,
-    GNM = 4,
-    Metal = 5,
-    NVN = 6,
-    OpenGLES = 7, // OpenGL ES 2.0+
-    OpenGL = 8,   // OpenGL 2.1+
-    Vulkan = 9,
+    Noop,
+    AGC,
+    Direct3D11,
+    Direct3D12,
+    GNM,
+    Metal,
+    NVN,
+    OpenGLES, // OpenGL ES 2.0+
+    OpenGL,   // OpenGL 2.1+
+    Vulkan,
     Count,
 }
 

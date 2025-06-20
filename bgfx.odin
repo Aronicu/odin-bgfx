@@ -4,14 +4,13 @@ package bgfx
 when ODIN_OS == .Windows {
 	foreign import lib {
         // TODO: Add Windows dyn and debug libs 
-        "system:stdc++",
         "libs/windows/bgfxRelease.lib",
         "libs/windows/bimgRelease.lib",
         "libs/windows/bxRelease.lib",
     }
 } else when ODIN_OS == .Linux  {
 	foreign import lib {
-        // TODO: Linux debug and so libs
+        // TODO: Add Linux dyn and debug libs
         "system:stdc++",
         "libs/linux/libbgfxRelease.a",
         "libs/linux/libbxRelease.a",
@@ -20,11 +19,10 @@ when ODIN_OS == .Windows {
 } else when ODIN_OS == .Darwin {
 	foreign import lib {
         // TODO: Add MacOS static, dyn, and debug libs 
-        "macos/...",
+        "libs/macos/...",
     }
 } else {
-    //TODO(elaeja): anything else?
-    foreign import lib "system:bgfx"
+    #panic("platform not currently supported")
 }
 
 Encoder :: distinct rawptr

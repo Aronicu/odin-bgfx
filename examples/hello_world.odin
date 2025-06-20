@@ -28,6 +28,7 @@ glfw_err_cb :: proc "c" (code: i32, desc: cstring) {
 
 get_platform_handles :: proc(window: glfw.WindowHandle) -> (rawptr, rawptr) {
     when ODIN_OS == .Windows {
+        //NOTE(elaeja): We do not need to provide the display for windows 
         hwnd := rawptr(glfw.GetWin32Window(window))
         return hwnd, nil
     } else when ODIN_OS == .Linux {
@@ -39,6 +40,9 @@ get_platform_handles :: proc(window: glfw.WindowHandle) -> (rawptr, rawptr) {
         } else {
             wayd := glfw.GetWaylandDisplay()
             wayw := glfw.GetWaylandWindow(window)
+            if wayd == nil || wayw == nil {
+                panic("could not get x11 or wayland display or window handle")
+            }
             return wayw, wayd, 
         }
     } else when ODIN_OS == .Darwin {
@@ -75,10 +79,11 @@ main :: proc() {
 
     // Explicitly setting the renderer type
     init.type = .Vulkan
-
-    fmt.println("getting wayland display and window")
+    
+    fmt.println("getting display and window handles")
     w_handle, d_handle := get_platform_handles(window)
-    fmt.println("got wayland display and window")
+    fmt.printfln("%p, %p", w_handle, d_handle)
+    fmt.println("got display and window handles")
 
     fmt.println("setting up platform data")
     init.platform_data = {
@@ -99,7 +104,7 @@ main :: proc() {
     }
     fmt.println(init.resolution)
     fmt.println("set up resolution data")
-    
+   
     fmt.println("initializing bgfx")
     if !bgfx.init(&init) { panic("bgfx failed to init!") }
     defer bgfx.shutdown()

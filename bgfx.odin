@@ -64,20 +64,20 @@ Attrib :: enum {
     Normal,
     Tangent,
     Bitangent,
-    Color0,
-    Color1,
-    Color2,
-    Color3,
+    Color_0,
+    Color_1,
+    Color_2,
+    Color_3,
     Indices,
     Weight,
-    Texcoord0,
-    Texcoord1,
-    Texcoord2,
-    Texcoord3,
-    Texcoord4,
-    Texcoord5,
-    Texcoord6,
-    Texcoord7,
+    Texcoord_0,
+    Texcoord_1,
+    Texcoord_2,
+    Texcoord_3,
+    Texcoord_4,
+    Texcoord_5,
+    Texcoord_6,
+    Texcoord_7,
     Count,
 }
 
@@ -781,18 +781,37 @@ foreign lib {
     *
     */
     vertex_layout_begin:: proc(this: ^Vertex_Layout, renderer_type: Renderer_Type) -> ^Vertex_Layout ---
+    
+    /**
+    * Add attribute to VertexLayout.
+    * @remarks Must be called between begin/end.
+    *
+    * @param[in] attrib Attribute semantics. See: `bgfx.Attrib`
+    * @param[in] num Number of elements 1, 2, 3 or 4.
+    * @param[in] type Element type.
+    * @param[in] normalized When using fixed point AttribType (f.e. Uint8)
+    *  value will be normalized for vertex shader usage. When normalized
+    *  is set to true, Attrib_Type.Uint8 value in range 0-255 will be
+    *  in range 0.0-1.0 in vertex shader.
+    * @param[in] as_int Packaging rule for vertexPack, vertexUnpack, and
+    *  vertexConvert for AttribType::Uint8 and AttribType::Int16.
+    *  Unpacking code must be implemented inside vertex shader.
+    *
+    * @returns Returns itself.
+    *
+    */
     vertex_layout_add:: proc(this: ^Vertex_Layout, attrib: Attrib, num: u8, type: Attrib_Type, normalized: bool, as_int: bool) -> ^Vertex_Layout ---
-    vertex_layout_decode:: proc(#by_ptr this: ^Vertex_Layout, attrib: Attrib, num: u8, type: Attrib_Type, normalized: bool, as_int: bool) ---
-    vertex_layout_has:: proc(#by_ptr this: ^Vertex_Layout, attrib: Attrib) -> bool ---
+    vertex_layout_decode:: proc(#by_ptr this: Vertex_Layout, attrib: Attrib, num: u8, type: Attrib_Type, normalized: bool, as_int: bool) ---
+    vertex_layout_has:: proc(#by_ptr this: Vertex_Layout, attrib: Attrib) -> bool ---
     vertex_layout_skip:: proc(this: ^Vertex_Layout, num: u8) -> ^Vertex_Layout ---
     vertex_layout_end:: proc(this: ^Vertex_Layout) ---
-    vertex_layout_get_offset:: proc(#by_ptr this: ^Vertex_Layout, attrib: Attrib) -> u16 ---
-    vertex_layout_get_stride:: proc(#by_ptr this: ^Vertex_Layout) -> u16 ---
-    vertex_layout_get_size:: proc(#by_ptr this: ^Vertex_Layout, num: u32) -> u32 ---
-    vertex_pack :: proc(input: [4]f32, input_normalized: bool, attr: Attrib, #by_ptr layout: ^Vertex_Layout, data: rawptr, index: u32) ---
-    vertex_unpack :: proc(input: [4]f32, attr: Attrib, #by_ptr layout: ^Vertex_Layout, #by_ptr data: rawptr, index: u32) ---
-    vertex_convert:: proc(#by_ptr dst_layout: ^Vertex_Layout, dst_data: rawptr, #by_ptr src_layout: ^Vertex_Layout, src_data: rawptr, num: u32) ---
-    weld_vertices:: proc(output: rawptr, #by_ptr layout: ^Vertex_Layout, data: rawptr, num: u32, index_32: bool, epsilon: f32) -> u32 ---
+    vertex_layout_get_offset:: proc(#by_ptr this: Vertex_Layout, attrib: Attrib) -> u16 ---
+    vertex_layout_get_stride:: proc(#by_ptr this: Vertex_Layout) -> u16 ---
+    vertex_layout_get_size:: proc(#by_ptr this: Vertex_Layout, num: u32) -> u32 ---
+    vertex_pack :: proc(input: [4]f32, input_normalized: bool, attr: Attrib, #by_ptr layout: Vertex_Layout, data: rawptr, index: u32) ---
+    vertex_unpack :: proc(input: [4]f32, attr: Attrib, #by_ptr layout: Vertex_Layout, data: rawptr, index: u32) ---
+    vertex_convert:: proc(#by_ptr dst_layout: Vertex_Layout, dst_data: rawptr, #by_ptr src_layout: Vertex_Layout, src_data: rawptr, num: u32) ---
+    weld_vertices:: proc(output: rawptr, #by_ptr layout: Vertex_Layout, data: rawptr, num: u32, index_32: bool, epsilon: f32) -> u32 ---
 
     topology_convert :: proc(conversion: Topology_Convert, dst: rawptr, dst_size: u32, indices: rawptr, num_indices: u32, index_32: bool) -> u32 ---
     topology_sort_tri_list :: proc(sort: Topology_Sort, dst: rawptr, dst_size: u32, dir: [3]f32, pos: [3]f32, vertices: rawptr, stride: u32, indices: rawptr, num_indices: u32, index_32: bool) ---
@@ -802,18 +821,18 @@ foreign lib {
     get_renderer_name :: proc(type: Renderer_Type) -> cstring ---
 
     init_ctor :: proc(init: ^Init) ---
-    init :: proc(#by_ptr init: ^Init) -> bool ---
+    init :: proc(#by_ptr init: Init) -> bool ---
     shutdown :: proc() ---
     reset :: proc(width, height, flags: u32, format: Texture_Format) ---
     frame :: proc(capture: bool) -> u32 ---
 
     get_renderer_type :: proc() -> Renderer_Type ---
-    get_caps :: proc() -> #by_ptr ^Caps ---
-    get_stats :: proc() -> #by_ptr ^Stats ---
+    get_caps :: proc() -> ^Caps ---
+    get_stats :: proc() -> ^Stats ---
 
-    alloc :: proc(size: u32) -> #by_ptr ^Memory ---
-    copy :: proc(data: rawptr, size: u32) -> #by_ptr ^Memory ---
-    make_ref :: proc(data: rawptr, size: u32) -> #by_ptr ^Memory ---
+    alloc :: proc(size: u32) -> ^Memory ---
+    copy :: proc(data: rawptr, size: u32) -> ^Memory ---
+    make_ref :: proc(data: rawptr, size: u32) -> ^Memory ---
     
     /**
     * Make reference to data to pass to bgfx. Unlike `bgfx.alloc`, this call
@@ -832,7 +851,7 @@ foreign lib {
     * @returns Referenced memory.
     *
     */
-    make_ref_release :: proc(data: rawptr, size: u32, release_fn: release_fn, user_data: rawptr) -> #by_ptr ^Memory ---
+    make_ref_release :: proc(data: rawptr, size: u32, release_fn: release_fn, user_data: rawptr) -> ^Memory ---
     
     /**
     * Set debug flags.
@@ -877,14 +896,14 @@ foreign lib {
     dbg_text_vprintf :: proc(x, y: u16, attr: u8, format: cstring, arg_list: Arg_List) ---
     dbg_text_image :: proc(x, y, width, height: u16, data: rawptr, pitch: u16) ---
 
-    create_index_buffer :: proc(#by_ptr mem: ^Memory, flags: u16) -> Index_Buffer_Handle ---
+    create_index_buffer :: proc(#by_ptr mem: Memory, flags: u16) -> Index_Buffer_Handle ---
     set_index_buffer_name :: proc(handle: Index_Buffer_Handle, name: cstring, len: i32) ---
     destroy_index_buffer :: proc(handle: Index_Buffer_Handle) ---
 
-    create_vertex_layout :: proc(#by_ptr layout: ^Vertex_Layout) -> Vertex_Layout_Handle ---
+    create_vertex_layout :: proc(#by_ptr layout: Vertex_Layout) -> Vertex_Layout_Handle ---
     destroy_vertex_layout :: proc(layout_handle: Vertex_Layout_Handle) ---
 
-    create_vertex_buffer :: proc(#by_ptr mem: ^Memory, #by_ptr layout: ^Vertex_Layout, flags: u16) -> Vertex_Buffer_Handle ---
+    create_vertex_buffer :: proc(#by_ptr mem: Memory, #by_ptr layout: Vertex_Layout, flags: u16) -> Vertex_Buffer_Handle ---
     set_vertex_buffer_name :: proc(handle: Vertex_Buffer_Handle, name: cstring, len: i32) ---
     destroy_vertex_buffer:: proc(handle: Vertex_Buffer_Handle) ---
 
@@ -909,7 +928,7 @@ foreign lib {
     *
     */
     create_dynamic_index_buffer :: proc(num: u32, flags: u16) -> Dynamic_Index_Buffer_Handle ---
-    create_dynamic_index_buffer_mem :: proc(#by_ptr mem: ^Memory, flags: u16) -> Dynamic_Index_Buffer_Handle ---
+    create_dynamic_index_buffer_mem :: proc(#by_ptr mem: Memory, flags: u16) -> Dynamic_Index_Buffer_Handle ---
     
     /**
     * Update dynamic index buffer.
@@ -919,7 +938,7 @@ foreign lib {
     * @param[in] mem Index buffer data.
     *
     */
-    update_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle, start_index: u32, #by_ptr mem: ^Memory) ---
+    update_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle, start_index: u32, #by_ptr mem: Memory) ---
     destroy_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle) ---
     
     /*
@@ -943,23 +962,23 @@ foreign lib {
     * @returns Dynamic vertex buffer handle.
     *
     */
-    create_dynamic_vertex_buffer :: proc(num: u32, #by_ptr layout: ^Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
-    create_dynamic_vertex_buffer_mem :: proc(#by_ptr mem: ^Memory, #by_ptr layout: ^Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
-    update_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, #by_ptr mem: ^Memory) ---
+    create_dynamic_vertex_buffer :: proc(num: u32, #by_ptr layout: Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
+    create_dynamic_vertex_buffer_mem :: proc(#by_ptr mem: Memory, #by_ptr layout: Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
+    update_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, #by_ptr mem: Memory) ---
     destroy_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle) ---
 
     get_avail_transient_index_buffer :: proc(num: u32, index_32: bool) -> u32 ---
     get_avail_instance_data_buffer :: proc(num: u32, stride: bool) -> u32 ---
 
     alloc_transient_index_buffer :: proc(tib: ^Transient_Index_Buffer, num: u32, index_32: bool) ---
-    alloc_transient_vertex_buffer :: proc(tvb: ^Transient_Vertex_Buffer, num: u32, #by_ptr layout: ^Vertex_Layout) ---
-    alloc_transient_buffers :: proc(tvb: ^Transient_Vertex_Buffer, #by_ptr layout: ^Vertex_Layout, num_vertices: u32, tib: ^Transient_Index_Buffer, num_indices: u32, index_32: bool) -> bool ---
+    alloc_transient_vertex_buffer :: proc(tvb: ^Transient_Vertex_Buffer, num: u32, #by_ptr layout: Vertex_Layout) ---
+    alloc_transient_buffers :: proc(tvb: ^Transient_Vertex_Buffer, #by_ptr layout: Vertex_Layout, num_vertices: u32, tib: ^Transient_Index_Buffer, num_indices: u32, index_32: bool) -> bool ---
     alloc_instance_data_buffer :: proc(idb: ^Instance_Data_Buffer, num: u32, stride: u16) ---
 
     create_indirect_buffer :: proc(num: u32) -> Indirect_Buffer_Handle ---
     destroy_indirect_buffer :: proc(handle: Indirect_Buffer_Handle) ---
 
-    create_shader :: proc(#by_ptr mem: ^Memory) -> Shader_Handle ---
+    create_shader :: proc(#by_ptr mem: Memory) -> Shader_Handle ---
     get_shader_uniforms :: proc(handle: Shader_Handle, uniforms: ^Uniform_Handle, max: u16) -> u16 ---
     set_shader_name :: proc(handle: Shader_Handle, name: cstring, len: i32) ---
     destroy_shader :: proc(handle: Shader_Handle) ---
@@ -969,18 +988,18 @@ foreign lib {
     destroy_program :: proc(handle: Program_Handle) --- 
 
     is_texture_valid :: proc(depth: u16, cube_map: bool, num_layers: u16, format: Texture_Format, flags: u64) -> bool ---
-    is_frame_buffer_size_valid :: proc(num: u8, #by_ptr attachment: ^Attachment) -> bool ---
+    is_frame_buffer_size_valid :: proc(num: u8, #by_ptr attachment: Attachment) -> bool ---
     calc_texture_size :: proc(info: ^Texture_Info, width, height, depth: u16, cube_map: bool, has_mips: bool, num_layers: u16, format: Texture_Format) ---
 
-    create_texture :: proc(#by_ptr mem: ^Memory, flags: u64, skip: u8, info: ^Texture_Info) -> Texture_Handle ---
-    create_texture_2d :: proc(width, height: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, #by_ptr mem: ^Memory) -> Texture_Handle ---
+    create_texture :: proc(#by_ptr mem: Memory, flags: u64, skip: u8, info: ^Texture_Info) -> Texture_Handle ---
+    create_texture_2d :: proc(width, height: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, #by_ptr mem: Memory) -> Texture_Handle ---
     create_texture_2d_scaled :: proc(ratio: Backbuffer_Ratio, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64) -> Texture_Handle ---
-    create_texture_3d :: proc(width, height, depth: u16, has_mips: bool, format: Texture_Format, flags: u64, #by_ptr mem: ^Memory) -> Texture_Handle ---
-    create_texture_cube :: proc(size: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, #by_ptr mem: ^Memory) -> Texture_Handle ---
+    create_texture_3d :: proc(width, height, depth: u16, has_mips: bool, format: Texture_Format, flags: u64, #by_ptr mem: Memory) -> Texture_Handle ---
+    create_texture_cube :: proc(size: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, #by_ptr mem: Memory) -> Texture_Handle ---
 
-    update_texture_2d :: proc(handle: Texture_Handle, layer: u16, mip: u8, x, y, w, h: u16, #by_ptr mem: ^Memory, pitch: u16) ---
-    update_texture_3d :: proc(handle: Texture_Handle, mip: u8, x, y, z, w, h, depth: u16, #by_ptr mem: ^Memory) ---
-    update_texture_cube:: proc(handle: Texture_Handle, layer: u16, side: u8, mip: u8, x, y, w, h: u16, #by_ptr mem: ^Memory, pitch: u16) ---
+    update_texture_2d :: proc(handle: Texture_Handle, layer: u16, mip: u8, x, y, w, h: u16, #by_ptr mem: Memory, pitch: u16) ---
+    update_texture_3d :: proc(handle: Texture_Handle, mip: u8, x, y, z, w, h, depth: u16, #by_ptr mem: Memory) ---
+    update_texture_cube:: proc(handle: Texture_Handle, layer: u16, side: u8, mip: u8, x, y, w, h: u16, #by_ptr mem: Memory, pitch: u16) ---
 
     read_texture :: proc(handle: Texture_Handle, data: rawptr, mip: u8) -> u32 ---
     set_texture_name :: proc(handle: Texture_Handle, name: cstring, len: i32) ---
@@ -991,8 +1010,8 @@ foreign lib {
     create_frame_buffer :: proc(w, h: u16, format: Texture_Format, texture_flags: u64) -> Frame_Buffer_Handle ---
     create_frame_buffer_scaled :: proc(ratio: Backbuffer_Ratio, format: Texture_Format, texture_flags: u64) -> Frame_Buffer_Handle ---
     // TODO: should these handles be an array of pointers?
-    create_frame_buffer_from_handles :: proc(num: u8, #by_ptr handles: ^Texture_Handle, destroy_texture: bool) -> Frame_Buffer_Handle ---
-    create_frame_buffer_from_attachment:: proc(num: u8, #by_ptr attachment: ^Attachment, destroy_texture: bool) -> Frame_Buffer_Handle ---
+    create_frame_buffer_from_handles :: proc(num: u8, #by_ptr handles: Texture_Handle, destroy_texture: bool) -> Frame_Buffer_Handle ---
+    create_frame_buffer_from_attachment:: proc(num: u8, #by_ptr attachment: Attachment, destroy_texture: bool) -> Frame_Buffer_Handle ---
     create_frame_buffer_from_nwh :: proc(nwh: rawptr, w, h: u16, format: Texture_Format, depth_format: Texture_Format) -> Frame_Buffer_Handle ---
     set_frame_buffer_name :: proc(handle: Frame_Buffer_Handle, name: cstring, len: i32) ---
     get_texture :: proc(handle: Frame_Buffer_Handle, attachment: u8) -> Texture_Handle ---
@@ -1020,7 +1039,7 @@ foreign lib {
     set_view_mode :: proc(id: View_Id, mode: View_Mode) ---
     set_view_frame_buffer :: proc(id: View_Id, handle: Frame_Buffer_Handle) ---
     set_view_transform:: proc(id: View_Id, view: rawptr, proj: rawptr) ---
-    set_view_order :: proc(id: View_Id, num: u16, #by_ptr order: ^View_Id) ---
+    set_view_order :: proc(id: View_Id, num: u16, #by_ptr order: View_Id) ---
     reset_view :: proc(id: View_Id) ---
 
     encoder_begin :: proc(for_thread: bool) -> ^Encoder ---
@@ -1039,15 +1058,15 @@ foreign lib {
     encoder_set_uniform :: proc(encoder: ^Encoder, handle: Uniform_Handle, value: rawptr, num: u16) ---
     encoder_set_index_buffer :: proc(encoder: ^Encoder, handle: Index_Buffer_Handle, first_index: u32, num_indices: u32) ---
     encoder_set_dynamic_index_buffer :: proc(encoder: ^Encoder, handle: Dynamic_Index_Buffer_Handle, first_index: u32, num_indices: u32) ---
-    encoder_set_transient_index_buffer :: proc(encoder: ^Encoder, #by_ptr tib: ^Transient_Index_Buffer, first_index: u32, num_indices: u32) ---
+    encoder_set_transient_index_buffer :: proc(encoder: ^Encoder, #by_ptr tib: Transient_Index_Buffer, first_index: u32, num_indices: u32) ---
     encoder_set_vertex_buffer :: proc(encoder: ^Encoder, stream: u8, handle: Vertex_Buffer_Handle, start_vertex: u32, num_vertices: u32) ---
     encoder_set_vertex_buffer_with_layout :: proc(encoder: ^Encoder, stream: u8, handle: Vertex_Buffer_Handle, start_vertex: u32, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
     encoder_set_dynamic_vertex_buffer :: proc(encoder: ^Encoder, stream: u8, handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, num_vertices: u32) ---
     encoder_set_dynamic_vertex_buffer_with_layout :: proc(encoder: ^Encoder, stream: u8, handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
-    encoder_set_transient_vertex_buffer :: proc(encoder: ^Encoder, stream: u8, #by_ptr tvb: ^Transient_Vertex_Buffer, start_vertex: u32, num_indices: u32) ---
-    encoder_set_transient_vertex_buffer_with_layout :: proc(encoder: ^Encoder, stream: u8, #by_ptr tvb: ^Transient_Vertex_Buffer, start_vertex: u32, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
+    encoder_set_transient_vertex_buffer :: proc(encoder: ^Encoder, stream: u8, #by_ptr tvb: Transient_Vertex_Buffer, start_vertex: u32, num_indices: u32) ---
+    encoder_set_transient_vertex_buffer_with_layout :: proc(encoder: ^Encoder, stream: u8, #by_ptr tvb: Transient_Vertex_Buffer, start_vertex: u32, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
     encoder_set_vertex_count :: proc(encoder: ^Encoder, num_vertices: u32) ---
-    encoder_set_instance_data_buffer :: proc(encoder: ^Encoder, #by_ptr idb: ^Instance_Data_Buffer, start: u32, num: u32) ---
+    encoder_set_instance_data_buffer :: proc(encoder: ^Encoder, #by_ptr idb: Instance_Data_Buffer, start: u32, num: u32) ---
     encoder_set_instance_data_from_vertex_buffer :: proc(encoder: ^Encoder, handle: Vertex_Buffer_Handle, start_vertex: u32, num: u32) ---
     encoder_set_instance_data_from_dynamic_vertex_buffer :: proc(encoder: ^Encoder, handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, num: u32) ---
     encoder_set_instance_count :: proc(encoder: ^Encoder, num_instances: u32) ---
@@ -1070,8 +1089,8 @@ foreign lib {
     request_screen_shot :: proc(handle: Frame_Buffer_Handle, filepath: cstring) ---
 
     render_frame :: proc(m_secs: i32) -> Render_Frame ---
-    set_platform_data :: proc(#by_ptr data: ^Platform_Data) ---
-    get_internal_data :: proc() -> #by_ptr ^Internal_Data ---
+    set_platform_data :: proc(#by_ptr data: Platform_Data) ---
+    get_internal_data :: proc() -> ^Internal_Data ---
 
     override_internal_texture_ptr :: proc(handle: Texture_Handle, ptr: uintptr) -> uintptr --- 
     override_internal_texture :: proc(handle: Texture_Handle, w, h: u16, num_mips: u8, format: Texture_Format, flags: u64) -> uintptr --- 
@@ -1090,15 +1109,15 @@ foreign lib {
     set_uniform :: proc(handle: Uniform_Handle, value: rawptr, num: u16) ---
     set_index_buffer :: proc(handle: Index_Buffer_Handle, first_index, num_indices: u32) ---
     set_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle, first_index, num_indices: u32) ---
-    set_transient_index_buffer :: proc(#by_ptr tib: ^Transient_Index_Buffer, first_index, num_indices: u32) ---
+    set_transient_index_buffer :: proc(#by_ptr tib: Transient_Index_Buffer, first_index, num_indices: u32) ---
     set_vertex_buffer :: proc(stream: u8, handle: Vertex_Buffer_Handle, start_vertex, num_vertices: u32) ---
     set_vertex_buffer_with_layout :: proc(stream: u8, handle: Vertex_Buffer_Handle, start_vertex, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
     set_dynamic_vertex_buffer :: proc(stream: u8, handle: Dynamic_Vertex_Buffer_Handle, start_vertex, num_vertices: u32) ---
     set_dynamic_vertex_buffer_with_layout :: proc(stream: u8, handle: Dynamic_Vertex_Buffer_Handle, start_vertex, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
-    set_transient_vertex_buffer :: proc(stream: u8, #by_ptr tvb: ^Transient_Vertex_Buffer, start_vertex, num_vertices: u32) ---
-    set_transient_vertex_buffer_with_layout :: proc(stream: u8, #by_ptr tvb: ^Transient_Vertex_Buffer, start_vertex, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
+    set_transient_vertex_buffer :: proc(stream: u8, #by_ptr tvb: Transient_Vertex_Buffer, start_vertex, num_vertices: u32) ---
+    set_transient_vertex_buffer_with_layout :: proc(stream: u8, #by_ptr tvb: Transient_Vertex_Buffer, start_vertex, num_vertices: u32, layout_handle: Vertex_Layout_Handle) ---
     set_vertex_count :: proc(num_vertices: u32) ---
-    set_instance_data_buffer :: proc(#by_ptr idb: ^Instance_Data_Buffer, start, num: u32) ---
+    set_instance_data_buffer :: proc(#by_ptr idb: Instance_Data_Buffer, start, num: u32) ---
     set_instance_data_from_vertex_buffer :: proc(handle: Vertex_Buffer_Handle, start, num: u32) ---
     set_instance_data_from_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle, start, num: u32) ---
     set_instance_count :: proc(num_instances: u32) ---

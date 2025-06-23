@@ -770,15 +770,25 @@ Interface_Vtbl :: distinct rawptr
 foreign lib {
     attachment_init :: proc(attachment: ^Attachment, handle: Texture_Handle, access: Access, layer: u16, num_layers: u16, mip: u16, resolve: u8) ---
 
-    vertex_layout_begin:: proc(layout: ^Vertex_Layout, renderer_type: Renderer_Type) -> ^Vertex_Layout ---
-    vertex_layout_add:: proc(layout: ^Vertex_Layout, attrib: Attrib, type: Attrib_Type, normalized: bool, as_int: bool) -> ^Vertex_Layout ---
-    vertex_layout_decode:: proc(#by_ptr layout: ^Vertex_Layout, attrib: Attrib, num: u8, type: Attrib_Type, normalized: bool, as_int: bool) ---
-    vertex_layout_has:: proc(#by_ptr layout: ^Vertex_Layout, attrib: Attrib) -> bool ---
-    vertex_layout_skip:: proc(layout: ^Vertex_Layout, num: u8) -> ^Vertex_Layout ---
-    vertex_layout_end:: proc(layout: ^Vertex_Layout) ---
-    vertex_layout_get_offset:: proc(#by_ptr layout: ^Vertex_Layout, attrib: Attrib) -> u16 ---
-    vertex_layout_get_stride:: proc(#by_ptr layout: ^Vertex_Layout) -> u16 ---
-    vertex_layout_get_size:: proc(#by_ptr layout: ^Vertex_Layout, num: u32) -> u32 ---
+    /**
+    * Start VertexLayout.
+    *
+    * @param[in] renderer_type Renderer backend type. See: `bgfx.Renderer_Type`
+    *
+    * @returns Returns itself.
+    *
+    //TODO(elaeja): Vertex_Layout is a class that has these methods. without a vtable, this may feel inefficient to use
+    *
+    */
+    vertex_layout_begin:: proc(this: ^Vertex_Layout, renderer_type: Renderer_Type) -> ^Vertex_Layout ---
+    vertex_layout_add:: proc(this: ^Vertex_Layout, attrib: Attrib, num: u8, type: Attrib_Type, normalized: bool, as_int: bool) -> ^Vertex_Layout ---
+    vertex_layout_decode:: proc(#by_ptr this: ^Vertex_Layout, attrib: Attrib, num: u8, type: Attrib_Type, normalized: bool, as_int: bool) ---
+    vertex_layout_has:: proc(#by_ptr this: ^Vertex_Layout, attrib: Attrib) -> bool ---
+    vertex_layout_skip:: proc(this: ^Vertex_Layout, num: u8) -> ^Vertex_Layout ---
+    vertex_layout_end:: proc(this: ^Vertex_Layout) ---
+    vertex_layout_get_offset:: proc(#by_ptr this: ^Vertex_Layout, attrib: Attrib) -> u16 ---
+    vertex_layout_get_stride:: proc(#by_ptr this: ^Vertex_Layout) -> u16 ---
+    vertex_layout_get_size:: proc(#by_ptr this: ^Vertex_Layout, num: u32) -> u32 ---
     vertex_pack :: proc(input: [4]f32, input_normalized: bool, attr: Attrib, #by_ptr layout: ^Vertex_Layout, data: rawptr, index: u32) ---
     vertex_unpack :: proc(input: [4]f32, attr: Attrib, #by_ptr layout: ^Vertex_Layout, #by_ptr data: rawptr, index: u32) ---
     vertex_convert:: proc(#by_ptr dst_layout: ^Vertex_Layout, dst_data: rawptr, #by_ptr src_layout: ^Vertex_Layout, src_data: rawptr, num: u32) ---
@@ -878,11 +888,61 @@ foreign lib {
     set_vertex_buffer_name :: proc(handle: Vertex_Buffer_Handle, name: cstring, len: i32) ---
     destroy_vertex_buffer:: proc(handle: Vertex_Buffer_Handle) ---
 
+    /*
+    * Create empty dynamic index buffer.
+    *
+    * @param[in] num Number of indices.
+    * @param[in] flags Buffer creation flags.
+    *    - `bgfx.BUFFER_NONE` - No fla
+    *    - `bgfx.BUFFER_COMPUTE_READ` - Buffer will be rrom by compute shader.
+    *    - `bgfx.BUFFER_COMPUTE_WRITE` - Buffer be written into by compute shader. When buffer
+    *       is created with `BGFX_BUFFMPUTE_WRITE` flag it cannot be updated from CPU.
+    *    - `bgfx.BGFXER_COMPUTE_READ_WRITE` - Buffer will be used for read/write by compute shader.
+    *    - `bgfx.BUFFER_ALLOW_RESIZE` - Buffer will resize on buffer update if a different amount of
+    *        data is passed. If this flag is not specified, and more data is passed on update, the buffer
+    *        will be trimmed to fit the existing buffer size. This flag has effect only on dynamic
+    *        buffers.
+    *    - `bgfx.BUFFER_INDEX32` - Buffer is using 32-bit indices. This flag has effect only on
+    *        index buffers.
+    *
+    * @returns Dynamic index buffer handle.
+    *
+    */
     create_dynamic_index_buffer :: proc(num: u32, flags: u16) -> Dynamic_Index_Buffer_Handle ---
     create_dynamic_index_buffer_mem :: proc(#by_ptr mem: ^Memory, flags: u16) -> Dynamic_Index_Buffer_Handle ---
+    
+    /**
+    * Update dynamic index buffer.
+    *
+    * @param[in] handle Dynamic index buffer handle.
+    * @param[in] start_index Start index.
+    * @param[in] mem Index buffer data.
+    *
+    */
     update_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle, start_index: u32, #by_ptr mem: ^Memory) ---
     destroy_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle) ---
-
+    
+    /*
+    * Create empty dynamic vertex buffer.
+    *
+    * @param[in] num Number of vertices.
+    * @param[in] layout Vertex layout.
+    * @param[in] flags Buffer creation flags.
+    *    - `bgfx.BUFFER_NONE` - No flags.
+    *    - `bgfx.BUFFER_COMPUTE_READ` - Buffer will be read from by compute shader.
+    *    - `bgfx.BUFFER_COMPUTE_WRITE` - Buffer will be written into by compute shader. When buffer
+    *        is created with `bgfx.BUFFER_COMPUTE_WRITE` flag it cannot be updated from CPU.
+    *    - `bgfx.BUFFER_COMPUTE_READ_WRITE` - Buffer will be used for read/write by compute shader.
+    *    - `bgfx.BUFFER_ALLOW_RESIZE` - Buffer will resize on buffer update if a different amount of
+    *        data is passed. If this flag is not specified, and more data is passed on update, the buffer
+    *        will be trimmed to fit the existing buffer size. This flag has effect only on dynamic
+    *        buffers.
+    *    - `bgfx.BUFFER_INDEX32` - Buffer is using 32-bit indices. This flag has effect only on
+    *        index buffers.
+    *
+    * @returns Dynamic vertex buffer handle.
+    *
+    */
     create_dynamic_vertex_buffer :: proc(num: u32, #by_ptr layout: ^Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
     create_dynamic_vertex_buffer_mem :: proc(#by_ptr mem: ^Memory, #by_ptr layout: ^Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
     update_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, #by_ptr mem: ^Memory) ---

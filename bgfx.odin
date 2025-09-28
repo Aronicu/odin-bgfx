@@ -896,14 +896,14 @@ foreign lib {
     dbg_text_vprintf :: proc(x, y: u16, attr: u8, format: cstring, arg_list: Arg_List) ---
     dbg_text_image :: proc(x, y, width, height: u16, data: rawptr, pitch: u16) ---
 
-    create_index_buffer :: proc(#by_ptr mem: Memory, flags: u16) -> Index_Buffer_Handle ---
+    create_index_buffer :: proc(mem: ^Memory, flags: u16) -> Index_Buffer_Handle ---
     set_index_buffer_name :: proc(handle: Index_Buffer_Handle, name: cstring, len: i32) ---
     destroy_index_buffer :: proc(handle: Index_Buffer_Handle) ---
 
     create_vertex_layout :: proc(#by_ptr layout: Vertex_Layout) -> Vertex_Layout_Handle ---
     destroy_vertex_layout :: proc(layout_handle: Vertex_Layout_Handle) ---
 
-    create_vertex_buffer :: proc(#by_ptr mem: Memory, #by_ptr layout: Vertex_Layout, flags: u16) -> Vertex_Buffer_Handle ---
+    create_vertex_buffer :: proc(mem: ^Memory, #by_ptr layout: Vertex_Layout, flags: u16) -> Vertex_Buffer_Handle ---
     set_vertex_buffer_name :: proc(handle: Vertex_Buffer_Handle, name: cstring, len: i32) ---
     destroy_vertex_buffer:: proc(handle: Vertex_Buffer_Handle) ---
 
@@ -928,7 +928,7 @@ foreign lib {
     *
     */
     create_dynamic_index_buffer :: proc(num: u32, flags: u16) -> Dynamic_Index_Buffer_Handle ---
-    create_dynamic_index_buffer_mem :: proc(#by_ptr mem: Memory, flags: u16) -> Dynamic_Index_Buffer_Handle ---
+    create_dynamic_index_buffer_mem :: proc(mem: ^Memory, flags: u16) -> Dynamic_Index_Buffer_Handle ---
     
     /**
     * Update dynamic index buffer.
@@ -938,7 +938,7 @@ foreign lib {
     * @param[in] mem Index buffer data.
     *
     */
-    update_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle, start_index: u32, #by_ptr mem: Memory) ---
+    update_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle, start_index: u32, mem: ^Memory) ---
     destroy_dynamic_index_buffer :: proc(handle: Dynamic_Index_Buffer_Handle) ---
     
     /*
@@ -963,8 +963,8 @@ foreign lib {
     *
     */
     create_dynamic_vertex_buffer :: proc(num: u32, #by_ptr layout: Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
-    create_dynamic_vertex_buffer_mem :: proc(#by_ptr mem: Memory, #by_ptr layout: Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
-    update_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, #by_ptr mem: Memory) ---
+    create_dynamic_vertex_buffer_mem :: proc(mem: ^Memory, #by_ptr layout: Vertex_Layout, flags: u16) -> Dynamic_Vertex_Buffer_Handle ---
+    update_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle, start_vertex: u32, mem: ^Memory) ---
     destroy_dynamic_vertex_buffer :: proc(handle: Dynamic_Vertex_Buffer_Handle) ---
 
     get_avail_transient_index_buffer :: proc(num: u32, index_32: bool) -> u32 ---
@@ -978,7 +978,7 @@ foreign lib {
     create_indirect_buffer :: proc(num: u32) -> Indirect_Buffer_Handle ---
     destroy_indirect_buffer :: proc(handle: Indirect_Buffer_Handle) ---
 
-    create_shader :: proc(#by_ptr mem: Memory) -> Shader_Handle ---
+    create_shader :: proc(mem: ^Memory) -> Shader_Handle ---
     get_shader_uniforms :: proc(handle: Shader_Handle, uniforms: ^Uniform_Handle, max: u16) -> u16 ---
     set_shader_name :: proc(handle: Shader_Handle, name: cstring, len: i32) ---
     destroy_shader :: proc(handle: Shader_Handle) ---
@@ -991,15 +991,15 @@ foreign lib {
     is_frame_buffer_size_valid :: proc(num: u8, #by_ptr attachment: Attachment) -> bool ---
     calc_texture_size :: proc(info: ^Texture_Info, width, height, depth: u16, cube_map: bool, has_mips: bool, num_layers: u16, format: Texture_Format) ---
 
-    create_texture :: proc(#by_ptr mem: Memory, flags: u64, skip: u8, info: ^Texture_Info) -> Texture_Handle ---
-    create_texture_2d :: proc(width, height: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, #by_ptr mem: Memory) -> Texture_Handle ---
+    create_texture :: proc(mem: ^Memory, flags: u64, skip: u8, info: ^Texture_Info) -> Texture_Handle ---
+    create_texture_2d :: proc(width, height: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, mem: ^Memory) -> Texture_Handle ---
     create_texture_2d_scaled :: proc(ratio: Backbuffer_Ratio, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64) -> Texture_Handle ---
-    create_texture_3d :: proc(width, height, depth: u16, has_mips: bool, format: Texture_Format, flags: u64, #by_ptr mem: Memory) -> Texture_Handle ---
-    create_texture_cube :: proc(size: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, #by_ptr mem: Memory) -> Texture_Handle ---
+    create_texture_3d :: proc(width, height, depth: u16, has_mips: bool, format: Texture_Format, flags: u64, mem: ^Memory) -> Texture_Handle ---
+    create_texture_cube :: proc(size: u16, has_mips: bool, num_layers: u16, format: Texture_Format, flags: u64, mem: ^Memory) -> Texture_Handle ---
 
-    update_texture_2d :: proc(handle: Texture_Handle, layer: u16, mip: u8, x, y, w, h: u16, #by_ptr mem: Memory, pitch: u16) ---
-    update_texture_3d :: proc(handle: Texture_Handle, mip: u8, x, y, z, w, h, depth: u16, #by_ptr mem: Memory) ---
-    update_texture_cube:: proc(handle: Texture_Handle, layer: u16, side: u8, mip: u8, x, y, w, h: u16, #by_ptr mem: Memory, pitch: u16) ---
+    update_texture_2d :: proc(handle: Texture_Handle, layer: u16, mip: u8, x, y, w, h: u16, mem: ^Memory, pitch: u16) ---
+    update_texture_3d :: proc(handle: Texture_Handle, mip: u8, x, y, z, w, h, depth: u16, mem: ^Memory) ---
+    update_texture_cube:: proc(handle: Texture_Handle, layer: u16, side: u8, mip: u8, x, y, w, h: u16, mem: ^Memory, pitch: u16) ---
 
     read_texture :: proc(handle: Texture_Handle, data: rawptr, mip: u8) -> u32 ---
     set_texture_name :: proc(handle: Texture_Handle, name: cstring, len: i32) ---
@@ -1034,7 +1034,7 @@ foreign lib {
     set_view_rect :: proc(id: View_Id, x, y, w, h: u16) ---
     set_view_rect_ratio :: proc(id: View_Id, x, y: u16, ratio: Backbuffer_Ratio) ---
     set_view_scissor :: proc(id: View_Id, x, y, w, h: u16) ---
-    set_view_clear :: proc(id: View_Id, flags: u16, rgba: u32, depth: f32, stencil: u8) ---
+    set_view_clear :: proc(id: View_Id, flags: Clear_Flags, rgba: u32, depth: f32, stencil: u8) ---
     set_view_clear_mrt :: proc(id: View_Id, flags: u16, depth: f32, stencil: u8, c0, c1, c2, c3, c4, c5, c6, c7: u8) ---
     set_view_mode :: proc(id: View_Id, mode: View_Mode) ---
     set_view_frame_buffer :: proc(id: View_Id, handle: Frame_Buffer_Handle) ---

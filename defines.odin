@@ -193,38 +193,50 @@ STENCIL_OP_PASS_Z_INVERT             :: u32(0x70000000) //!< Invert.
 STENCIL_OP_PASS_Z_SHIFT              :: 28              //!< Stencil operation depth pass bit shift
 STENCIL_OP_PASS_Z_MASK               :: u32(0xf0000000) //!< Stencil operation depth pass bit mask
 
-CLEAR_NONE                           :: u16(0x0000) //!< No clear flags.
-CLEAR_COLOR                          :: u16(0x0001) //!< Clear color.
-CLEAR_DEPTH                          :: u16(0x0002) //!< Clear depth.
-CLEAR_STENCIL                        :: u16(0x0004) //!< Clear stencil.
-CLEAR_DISCARD_COLOR_0                :: u16(0x0008) //!< Discard frame buffer attachment 0.
-CLEAR_DISCARD_COLOR_1                :: u16(0x0010) //!< Discard frame buffer attachment 1.
-CLEAR_DISCARD_COLOR_2                :: u16(0x0020) //!< Discard frame buffer attachment 2.
-CLEAR_DISCARD_COLOR_3                :: u16(0x0040) //!< Discard frame buffer attachment 3.
-CLEAR_DISCARD_COLOR_4                :: u16(0x0080) //!< Discard frame buffer attachment 4.
-CLEAR_DISCARD_COLOR_5                :: u16(0x0100) //!< Discard frame buffer attachment 5.
-CLEAR_DISCARD_COLOR_6                :: u16(0x0200) //!< Discard frame buffer attachment 6.
-CLEAR_DISCARD_COLOR_7                :: u16(0x0400) //!< Discard frame buffer attachment 7.
-CLEAR_DISCARD_DEPTH                  :: u16(0x0800) //!< Discard frame buffer depth attachment.
-CLEAR_DISCARD_STENCIL                :: u16(0x1000) //!< Discard frame buffer stencil attachment.
-CLEAR_DISCARD_COLOR_MASK :: CLEAR_DISCARD_COLOR_0 | CLEAR_DISCARD_COLOR_1 | CLEAR_DISCARD_COLOR_2 | CLEAR_DISCARD_COLOR_3 | CLEAR_DISCARD_COLOR_4 | CLEAR_DISCARD_COLOR_5 | CLEAR_DISCARD_COLOR_6 | CLEAR_DISCARD_COLOR_7
+Clear_Flag :: enum u16 {
+	COLOR                          = 0,  //!< Clear color.
+	DEPTH                          = 1,  //!< Clear depth.
+	STENCIL                        = 2,  //!< Clear stencil.
+	DISCARD_COLOR_0                = 3,  //!< Discard frame buffer attachment 0.
+	DISCARD_COLOR_1                = 4,  //!< Discard frame buffer attachment 1.
+	DISCARD_COLOR_2                = 5,  //!< Discard frame buffer attachment 2.
+	DISCARD_COLOR_3                = 6,  //!< Discard frame buffer attachment 3.
+	DISCARD_COLOR_4                = 7,  //!< Discard frame buffer attachment 4.
+	DISCARD_COLOR_5                = 8,  //!< Discard frame buffer attachment 5.
+	DISCARD_COLOR_6                = 9,  //!< Discard frame buffer attachment 6.
+	DISCARD_COLOR_7                = 10, //!< Discard frame buffer attachment 7.
+	DISCARD_DEPTH                  = 11, //!< Discard frame buffer depth attachment.
+	DISCARD_STENCIL                = 12, //!< Discard frame buffer stencil attachment.
+}
+Clear_Flags :: bit_set[Clear_Flag; u16]
+CLEAR_DISCARD_COLOR_MASK :: Clear_Flags {
+	.DISCARD_COLOR_0,
+	.DISCARD_COLOR_1,
+	.DISCARD_COLOR_2,
+	.DISCARD_COLOR_3,
+	.DISCARD_COLOR_4,
+	.DISCARD_COLOR_5,
+	.DISCARD_COLOR_6,
+	.DISCARD_COLOR_7,
+}
 
-CLEAR_DISCARD_MASK :: CLEAR_DISCARD_COLOR_MASK | CLEAR_DISCARD_DEPTH | CLEAR_DISCARD_STENCIL
-
+CLEAR_DISCARD_MASK :: CLEAR_DISCARD_COLOR_MASK | Clear_Flags{.DISCARD_DEPTH, .DISCARD_STENCIL}
 
 /**
  * Rendering state discard. When state is preserved in submit, rendering states can be discarded
  * on a finer grain.
  *
  */
-DISCARD_NONE                         :: u8(0x00) //!< Preserve everything.
-DISCARD_BINDINGS                     :: u8(0x01) //!< Discard texture sampler and buffer bindings.
-DISCARD_INDEX_BUFFER                 :: u8(0x02) //!< Discard index buffer.
-DISCARD_INSTANCE_DATA                :: u8(0x04) //!< Discard instance data.
-DISCARD_STATE                        :: u8(0x08) //!< Discard state and uniform bindings.
-DISCARD_TRANSFORM                    :: u8(0x10) //!< Discard transform.
-DISCARD_VERTEX_STREAMS               :: u8(0x20) //!< Discard vertex streams.
-DISCARD_ALL                          :: u8(0xff) //!< Discard all states.
+Discard_Flag :: enum u8 {
+	BINDINGS       = 0, //!< Discard texture sampler and buffer bindings.
+	INDEX_BUFFER   = 1, //!< Discard index buffer.
+	INSTANCE_DATA  = 2, //!< Discard instance data.
+	STATE          = 3, //!< Discard state and uniform bindings.
+	TRANSFORM      = 4, //!< Discard transform.
+	VERTEX_STREAMS = 5, //!< Discard vertex streams.
+}
+Discard_Flags :: bit_set[Discard_Flag; u8]
+DISCARD_ALL :: Discard_Flags {.BINDINGS, .INDEX_BUFFER, .INSTANCE_DATA, .STATE, .TRANSFORM, .VERTEX_STREAMS}
 
 DEBUG_NONE                           :: u32(0x00000000) //!< No debug.
 DEBUG_WIREFRAME                      :: u32(0x00000001) //!< Enable wireframe for all primitives.

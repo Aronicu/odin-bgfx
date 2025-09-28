@@ -1123,7 +1123,7 @@ foreign lib {
     set_instance_count :: proc(num_instances: u32) ---
     set_texture :: proc(state: u8, sampler: Uniform_Handle, handle: Texture_Handle, flags: u32) ---
     touch :: proc(id: View_Id) ---
-    submit :: proc(id: View_Id, program: Program_Handle, depth: u32, flags: u8) ---
+    submit :: proc(id: View_Id, program: Program_Handle, depth: u32, flags: Discard_Flags) ---
     submit_occlusion_query :: proc(id: View_Id, program: Program_Handle, occlusion_query: Occlusion_Query_Handle, depth: u32, flags: u8) ---
     submit_indirect :: proc(id: View_Id, program: Program_Handle, indirect_handle: Indirect_Buffer_Handle, start, num, depth: u32, flags: u8) ---
     submit_indirect_count :: proc(id: View_Id, program: Program_Handle, indirect_handle: Indirect_Buffer_Handle, start: u32, num_handle: Index_Buffer_Handle, num_index, num_max, depth: u32, flags: u8) ---

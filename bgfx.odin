@@ -368,7 +368,7 @@ Allocator_Interface :: struct {
 }
 
 Allocator_Vtbl :: struct {
-    realloc: proc "c" (this: ^Allocator_Interface, ptr: rawptr, size: uint, align: uint, file: cstring, line: u32) -> rawptr
+    realloc: proc "c" (this: ^Allocator_Interface, ptr: rawptr, size: uint, align: uint, file: cstring, line: u32) -> rawptr,
 }
 
 Callback_Interface :: struct {
